@@ -5,6 +5,8 @@ namespace App\Repositories;
 use App\Contracts\Repositories\PlaceRepositoryContract;
 use App\DTO\Place\CreatePlaceDTO;
 use App\Models\Place;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class PlaceRepository implements PlaceRepositoryContract
 {
@@ -32,6 +34,13 @@ class PlaceRepository implements PlaceRepositoryContract
             ['source_org_id' => $createPlaceDTO->getSourceOrgId()],
             $createPlaceDTO->toArray()
         );
+    }
+
+    public function list(?string $filter, int $page, int $perPage): LengthAwarePaginator
+    {
+        return $this->model::query()->withCount('reviews')->where(function (Builder $query) use ($filter) {
+            $query->where('source_org_id', 'like', "%$filter%")->orWhere('title', 'like', "%$filter%");
+        })->paginate($perPage, ['*'], 'page', $page);
     }
 
 }

@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use App\Contracts\Repositories\PlaceRepositoryContract;
 use App\Contracts\Services\PlaceServiceContract;
 use App\DTO\Place\CreatePlaceDTO;
 use App\Models\Place;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 readonly class PlaceService implements PlaceServiceContract
 {
 
-    public function __construct(private PlaceServiceContract $placeRepository)
+    public function __construct(private PlaceRepositoryContract $placeRepository)
     {
     }
 
@@ -35,6 +37,11 @@ readonly class PlaceService implements PlaceServiceContract
     public function create(CreatePlaceDTO $createPlaceDTO): ?Place
     {
         return $this->placeRepository->create($createPlaceDTO);
+    }
+
+    public function list(?string $filter, int $page, int $perPage): LengthAwarePaginator
+    {
+        return $this->placeRepository->list($filter, $page, $perPage);
     }
 
 }

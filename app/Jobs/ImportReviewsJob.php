@@ -120,8 +120,6 @@ class ImportReviewsJob implements ShouldQueue
 
         fclose($handle);
 
-        if ($place) {
-            $place->update(['status' => ParsingStatus::DONE]);
-        }
+        $place->update(['status' => ParsingStatus::DONE]);
     }
 }

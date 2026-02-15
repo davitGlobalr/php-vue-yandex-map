@@ -4,6 +4,7 @@ namespace App\Contracts\Services;
 
 use App\DTO\Place\CreatePlaceDTO;
 use App\Models\Place;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface PlaceServiceContract
 {
@@ -12,5 +13,7 @@ interface PlaceServiceContract
 
     public function update($id, array $data): ?Place;
     public function create(CreatePlaceDTO $createPlaceDTO): ?Place;
+
+    public function list(?string $filter, int $page, int $perPage): LengthAwarePaginator;
 
 }

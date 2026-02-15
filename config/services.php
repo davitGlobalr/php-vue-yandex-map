@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'import_data_path' => env('IMPORT_DATA_PATH', '/var/app/import-data'),
+    'parser_service_url' => env('PARSER_SERVICE_URL', 'http://localhost:3000'),
+    'parser_webhook_secret' => env('PARSER_WEBHOOK_SECRET'),
+
 ];

@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('source_url', 1024);
             $table->decimal('rating_value')->nullable();
             $table->integer('rating_count')->nullable();
+            $table->tinyInteger('status')->nullable();
             $table->timestamps();
 
             $table->index('title');

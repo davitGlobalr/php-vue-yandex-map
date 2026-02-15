@@ -5,11 +5,21 @@ import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        strictPort: true,
+        hmr: {
+            host: 'localhost',
+            clientPort: 5147,
+        },
+    },
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],
             ssr: 'resources/js/ssr.ts',
             refresh: true,
+            detectTls: false,
         }),
         tailwindcss(),
         wayfinder({

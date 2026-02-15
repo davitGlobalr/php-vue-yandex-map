@@ -31,5 +31,8 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="IMPORT_DATA_PATH" value="./storage/app/testing/import-data"/>
+        <env name="PARSER_SERVICE_URL" value="http://parser:3000"/>
+        <env name="PARSER_WEBHOOK_SECRET" value="test-secret-key"/>
     </php>
 </phpunit>

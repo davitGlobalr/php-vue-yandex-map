@@ -12,6 +12,7 @@ services:
     working_dir: /var/www/
     volumes:
       - ./:/var/www
+      - ./parser-service/data:/var/app/import-data
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -22,6 +23,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       VITE_APP_URL: http://localhost:5147
+      IMPORT_DATA_PATH: /var/app/import-data
+      PARSER_SERVICE_URL: http://parser:3000
     depends_on:
       db:
         condition: service_healthy
@@ -112,6 +115,55 @@ services:
       REDIS_PORT: 6379
     depends_on:
       - app
+    networks:
+      - laravel
+
+  parser:
+    build:
+      context: ./parser-service
+      dockerfile: Dockerfile
+    container_name: laravel-parser-service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./parser-service/data:/app/data
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - DATA_DIR=/app/data
+      - LARAVEL_WEBHOOK_URL=http://nginx:80
+      - PARSER_WEBHOOK_SECRET=${PARSER_WEBHOOK_SECRET}
+    depends_on:
+      - app
+    networks:
+      - laravel
+
+  queue:
+    image: laravel-app
+    container_name: laravel-vue-queue
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+      - ./parser-service/data:/var/app/import-data
+    command: php artisan queue:work --tries=3 --timeout=300
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-laravel_db}
+      DB_USERNAME: ${DB_USERNAME:-sail}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      IMPORT_DATA_PATH: /var/app/import-data
+      PARSER_SERVICE_URL: http://parser:3000
+    depends_on:
+      - app
+      - db
+      - redis
     networks:
       - laravel
 

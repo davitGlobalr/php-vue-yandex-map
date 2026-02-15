@@ -177,46 +177,12 @@ const getDisplayText = (text: string, reviewId: number) => {
 
             <div class="h-px bg-border" />
             <div class="flex flex-wrap items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <a
-                        v-if="place.source_url"
-                        :href="place.source_url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-xs transition-colors hover:bg-muted/50"
-                    >
-                        <svg
-                            width="13"
-                            height="16"
-                            viewBox="0 0 13 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M6.0209 0C2.69556 0 0 2.69556 0 6.0209C0 7.68297 0.673438 9.1879 1.76262 10.2774C2.8521 11.3675 5.41881 12.9449 5.56934 14.6007C5.5919 14.849 5.77164 15.0523 6.0209 15.0523C6.27017 15.0523 6.4499 14.849 6.47247 14.6007C6.62299 12.9449 9.1897 11.3675 10.2792 10.2774C11.3684 9.1879 12.0418 7.68297 12.0418 6.0209C12.0418 2.69556 9.34625 0 6.0209 0Z"
-                                fill="#FF4433"
-                            />
-                        </svg>
-                        <svg
-                            width="5"
-                            height="5"
-                            viewBox="0 0 5 5"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            style="position: relative;bottom: 1px;right: 15px;"
-                        >
-                            <path
-                                d="M2.10732 4.21463C3.27116 4.21463 4.21461 3.27115 4.21461 2.10732C4.21461 0.943476 3.27116 0 2.10732 0C0.943485 0 0 0.943476 0 2.10732C0 3.27115 0.943485 4.21463 2.10732 4.21463Z"
-                                fill="white"
-                            />
-                        </svg>
-                        <span>Яндекс Карты</span>
-                    </a>
+                <div class="items-center gap-2">
                     <select
                         id="rating-filter"
                         v-model="ratingFilter"
                         @change="applyRatingFilter"
-                        class="h-9 min-w-[140px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        class="h-9 min-w-[140px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                     >
                         <option
                             v-for="opt in ratingOptions"
@@ -227,7 +193,42 @@ const getDisplayText = (text: string, reviewId: number) => {
                         </option>
                     </select>
                 </div>
+                <a
+                    v-if="place.source_url"
+                    :href="place.source_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-xs transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <svg
+                        width="13"
+                        height="16"
+                        viewBox="0 0 13 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M6.0209 0C2.69556 0 0 2.69556 0 6.0209C0 7.68297 0.673438 9.1879 1.76262 10.2774C2.8521 11.3675 5.41881 12.9449 5.56934 14.6007C5.5919 14.849 5.77164 15.0523 6.0209 15.0523C6.27017 15.0523 6.4499 14.849 6.47247 14.6007C6.62299 12.9449 9.1897 11.3675 10.2792 10.2774C11.3684 9.1879 12.0418 7.68297 12.0418 6.0209C12.0418 2.69556 9.34625 0 6.0209 0Z"
+                            fill="#FF4433"
+                        />
+                    </svg>
+                    <svg
+                        width="5"
+                        height="5"
+                        viewBox="0 0 5 5"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style="position: relative; bottom: 1px; right: 15px"
+                    >
+                        <path
+                            d="M2.10732 4.21463C3.27116 4.21463 4.21461 3.27115 4.21461 2.10732C4.21461 0.943476 3.27116 0 2.10732 0C0.943485 0 0 0.943476 0 2.10732C0 3.27115 0.943485 4.21463 2.10732 4.21463Z"
+                            fill="white"
+                        />
+                    </svg>
+                    <span>Яндекс Карты</span>
+                </a>
             </div>
+
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
                 <!-- Левая колонка: список отзывов -->
                 <div class="flex min-w-0 flex-col gap-4">
@@ -237,68 +238,76 @@ const getDisplayText = (text: string, reviewId: number) => {
                         <div
                             v-for="review in reviewsList"
                             :key="review.id"
-                            class="rounded-lg border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                            class="rounded-xl bg-white p-3 shadow-sm"
                         >
-                            <div
-                                class="mb-3 flex items-start justify-between gap-2"
-                            >
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span
-                                        class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
-                                        >{{ review.published_at }}</span
-                                    >
-                                    <span
-                                        class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
-                                        >{{ place.title }}</span
-                                    >
-                                </div>
+                            <div class="rounded-lg bg-[#F6F8FA] p-4">
                                 <div
-                                    class="flex flex-shrink-0 items-center gap-1"
+                                    class="mb-3 flex items-start justify-between gap-2"
                                 >
-                                    <svg
-                                        v-for="(filled, index) in renderStars(
-                                            review.rating,
-                                        )"
-                                        :key="index"
-                                        class="h-4 w-4"
-                                        :class="
-                                            filled
-                                                ? 'fill-current text-yellow-400'
-                                                : 'fill-current text-gray-300'
-                                        "
-                                        viewBox="0 0 20 20"
+                                    <div
+                                        class="flex flex-wrap items-center gap-2"
                                     >
-                                        <path
-                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                                        />
-                                    </svg>
+                                        <span
+                                            class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
+                                            >{{ review.published_at }}</span
+                                        >
+                                        <span
+                                            class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
+                                            >{{ place.title }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="flex flex-shrink-0 items-center gap-1"
+                                    >
+                                        <svg
+                                            v-for="(
+                                                filled, index
+                                            ) in renderStars(review.rating)"
+                                            :key="index"
+                                            class="h-4 w-4"
+                                            :class="
+                                                filled
+                                                    ? 'fill-current text-yellow-400'
+                                                    : 'fill-current text-gray-300'
+                                            "
+                                            viewBox="0 0 20 20"
+                                        >
+                                            <path
+                                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                            />
+                                        </svg>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <p
-                                    class="text-sm leading-relaxed whitespace-pre-line text-foreground"
-                                >
-                                    {{ review.user_name }}
-                                    <br />
+                                <div>
+                                    <p
+                                        class="text-sm leading-relaxed whitespace-pre-line text-foreground"
+                                    >
+                                        {{ review.user_name }}
+                                        <br />
 
-                                    {{
-                                        getDisplayText(
-                                            review.review ?? '',
-                                            review.id,
-                                        )
-                                    }}
-                                </p>
-                                <button
-                                    v-if="shouldShowExpand(review.review ?? '')"
-                                    @click="toggleExpand(review.id)"
-                                    class="mt-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
-                                >
-                                    {{
-                                        isExpanded(review.id)
-                                            ? 'Свернуть'
-                                            : 'Развернуть'
-                                    }}
-                                </button>
+                                        {{
+                                            getDisplayText(
+                                                review.review ?? '',
+                                                review.id,
+                                            )
+                                        }}
+                                    </p>
+                                    <button
+                                        v-if="
+                                            shouldShowExpand(
+                                                review.review ?? '',
+                                            )
+                                        "
+                                        @click="toggleExpand(review.id)"
+                                        class="mt-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                                    >
+                                        {{
+                                            isExpanded(review.id)
+                                                ? 'Свернуть'
+                                                : 'Развернуть'
+                                        }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

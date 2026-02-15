@@ -35,6 +35,8 @@ const props = withDefaults(
       id: number;
       source_org_id: number;
       title: string | null;
+      rating_value?: number | null;
+      rating_count?: number | null;
     };
     reviews?: PaginatedReviews;
     filters?: { rating?: string };
@@ -92,6 +94,24 @@ const renderStars = (rating: number) => {
   return Array.from({ length: 5 }, (_, i) => i < rating);
 };
 
+/** Возвращает 'full' | 'half' | 'empty' для каждой из 5 звёзд. Если avg > 4 — 4.5 звёзды, если 4 — 4 звёзды. */
+const renderAverageStars = (avg: number | null | undefined): ('full' | 'half' | 'empty')[] => {
+  if (avg == null || avg <= 0) return ['empty', 'empty', 'empty', 'empty', 'empty'];
+  if (avg >= 4.5) return ['full', 'full', 'full', 'full', 'half'];
+  if (avg > 4) return ['full', 'full', 'full', 'full', 'half'];
+  if (avg >= 4) return ['full', 'full', 'full', 'full', 'empty'];
+  const full = Math.floor(avg);
+  const hasHalf = avg - full >= 0.5;
+  return Array.from({ length: 5 }, (_, i) => {
+    if (i < full) return 'full';
+    if (i === full && hasHalf) return 'half';
+    return 'empty';
+  });
+};
+
+const averageRating = computed(() => props.place?.rating_value ?? null);
+const totalReviews = computed(() => props.place?.rating_count ?? pagination.value?.total ?? 0);
+
 const expandedReviews = ref<Set<number>>(new Set());
 const textMaxLength = 200;
 
@@ -124,20 +144,18 @@ const getDisplayText = (text: string, reviewId: number) => {
               Назад
             </Link>
           </Button>
-          <div>
-            <h1 class="text-2xl font-bold text-foreground">
-              {{ place.title || `Место #${place.source_org_id}` }}
-            </h1>
-            <p class="mt-1 text-sm text-muted-foreground">
-              Отзывов: {{ pagination?.total ?? reviewsList.length }}
-            </p>
-          </div>
+          <h1 class="text-2xl font-bold text-foreground">
+            {{ place.title || `Место #${place.source_org_id}` }}
+          </h1>
         </div>
       </div>
 
       <div class="h-px bg-border" />
 
-      <div class="flex flex-wrap items-center gap-4">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+        <!-- Левая колонка: список отзывов -->
+        <div class="flex min-w-0 flex-col gap-4">
+          <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
           <Label for="rating-filter" class="text-sm font-medium text-foreground">
             Рейтинг
@@ -159,7 +177,7 @@ const getDisplayText = (text: string, reviewId: number) => {
         </div>
       </div>
 
-      <div class="space-y-4">
+          <div class="space-y-4">
         <div
           v-for="review in reviewsList"
           :key="review.id"
@@ -199,37 +217,90 @@ const getDisplayText = (text: string, reviewId: number) => {
         </div>
       </div>
 
-      <div v-if="reviewsList.length === 0" class="py-12 text-center text-muted-foreground">
-        Нет отзывов
-      </div>
+          <div v-if="reviewsList.length === 0" class="py-12 text-center text-muted-foreground">
+            Нет отзывов
+          </div>
 
-      <div
-        v-if="pagination && pagination.last_page > 1"
-        class="flex flex-wrap items-center justify-between gap-4"
-      >
-        <p class="text-sm text-muted-foreground">
-          Показано {{ pagination.from ?? 0 }}–{{ pagination.to ?? 0 }} из {{ pagination.total }}
-        </p>
-        <div class="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            :disabled="!reviews?.links?.prev"
-            @click="reviews?.links?.prev && router.visit(reviews.links.prev)"
+          <div
+            v-if="pagination && pagination.last_page > 1"
+            class="flex flex-wrap items-center justify-between gap-4"
           >
-            <ChevronLeft class="h-4 w-4" />
-          </Button>
-          <span class="px-3 text-sm text-muted-foreground">
-            {{ pagination.current_page }} / {{ pagination.last_page }}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            :disabled="!reviews?.links?.next"
-            @click="reviews?.links?.next && router.visit(reviews.links.next)"
-          >
-            <ChevronRight class="h-4 w-4" />
-          </Button>
+            <p class="text-sm text-muted-foreground">
+              Показано {{ pagination.from ?? 0 }}–{{ pagination.to ?? 0 }} из {{ pagination.total }}
+            </p>
+            <div class="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="!reviews?.links?.prev"
+                @click="reviews?.links?.prev && router.visit(reviews.links.prev)"
+              >
+                <ChevronLeft class="h-4 w-4" />
+              </Button>
+              <span class="px-3 text-sm text-muted-foreground">
+                {{ pagination.current_page }} / {{ pagination.last_page }}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="!reviews?.links?.next"
+                @click="reviews?.links?.next && router.visit(reviews.links.next)"
+              >
+                <ChevronRight class="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Правая колонка: плашка с рейтингом -->
+        <div class="lg:sticky lg:top-6 lg:self-start">
+          <div class="rounded-lg border border-border bg-card p-5 shadow-sm">
+            <div class="flex flex-col items-center gap-3 text-center">
+              <span
+                v-if="averageRating != null"
+                class="text-3xl font-bold text-foreground"
+              >
+                {{ Number(averageRating).toFixed(1) }}
+              </span>
+              <div class="flex items-center gap-0.5">
+                <template
+                  v-for="(type, idx) in renderAverageStars(averageRating ?? 0)"
+                  :key="idx"
+                >
+                  <svg
+                    v-if="type === 'full'"
+                    class="h-6 w-6 text-yellow-400 fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <svg
+                    v-else-if="type === 'half'"
+                    class="h-6 w-6 text-yellow-400"
+                    viewBox="0 0 20 20"
+                  >
+                    <defs>
+                      <linearGradient :id="`half-star-${placeId ?? ''}`">
+                        <stop offset="50%" stop-color="currentColor" />
+                        <stop offset="50%" stop-color="#d1d5db" stop-opacity="1" />
+                      </linearGradient>
+                    </defs>
+                    <path :fill="`url(#half-star-${placeId ?? ''})`" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <svg
+                    v-else
+                    class="h-6 w-6 text-gray-300 fill-current"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </template>
+              </div>
+              <p class="text-sm text-muted-foreground">
+                Всего отзывов: {{ totalReviews.toLocaleString('ru-RU') }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

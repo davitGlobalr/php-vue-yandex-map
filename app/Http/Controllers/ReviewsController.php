@@ -54,6 +54,8 @@ class ReviewsController extends Controller
                 'id' => $place->id,
                 'source_org_id' => $place->source_org_id,
                 'title' => $place->title,
+                'rating_value' => $place->rating_value,
+                'rating_count' => $place->rating_count,
             ],
             'reviews' => PlaceReviewResource::collection($reviews),
             'filters' => [

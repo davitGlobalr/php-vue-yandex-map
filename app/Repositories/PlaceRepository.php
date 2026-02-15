@@ -40,7 +40,7 @@ class PlaceRepository implements PlaceRepositoryContract
     {
         return $this->model::query()->withCount('reviews')->where(function (Builder $query) use ($filter) {
             $query->where('source_org_id', 'like', "%$filter%")->orWhere('title', 'like', "%$filter%");
-        })->paginate($perPage, ['*'], 'page', $page);
+        })->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
     }
 
 }

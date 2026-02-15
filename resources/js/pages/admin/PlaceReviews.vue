@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ArrowLeft, ChevronLeft, ChevronRight, MapPin } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -40,6 +40,7 @@ const props = withDefaults(
             id: number;
             source_org_id: number;
             title: string | null;
+            source_url?: string | null;
             rating_value?: number | null;
             rating_count?: number | null;
         };
@@ -175,27 +176,57 @@ const getDisplayText = (text: string, reviewId: number) => {
             </div>
 
             <div class="h-px bg-border" />
-            <div class="flex items-center gap-2">
-                <Label
-                    for="rating-filter"
-                    class="text-sm font-medium text-foreground"
-                >
-                    Рейтинг
-                </Label>
-                <select
-                    id="rating-filter"
-                    v-model="ratingFilter"
-                    @change="applyRatingFilter"
-                    class="h-9 min-w-[140px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                >
-                    <option
-                        v-for="opt in ratingOptions"
-                        :key="opt.value"
-                        :value="opt.value"
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <a
+                        v-if="place.source_url"
+                        :href="place.source_url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-xs transition-colors hover:bg-muted/50"
                     >
-                        {{ opt.label }}
-                    </option>
-                </select>
+                        <svg
+                            width="13"
+                            height="16"
+                            viewBox="0 0 13 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M6.0209 0C2.69556 0 0 2.69556 0 6.0209C0 7.68297 0.673438 9.1879 1.76262 10.2774C2.8521 11.3675 5.41881 12.9449 5.56934 14.6007C5.5919 14.849 5.77164 15.0523 6.0209 15.0523C6.27017 15.0523 6.4499 14.849 6.47247 14.6007C6.62299 12.9449 9.1897 11.3675 10.2792 10.2774C11.3684 9.1879 12.0418 7.68297 12.0418 6.0209C12.0418 2.69556 9.34625 0 6.0209 0Z"
+                                fill="#FF4433"
+                            />
+                        </svg>
+                        <svg
+                            width="5"
+                            height="5"
+                            viewBox="0 0 5 5"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style="position: relative;bottom: 1px;right: 15px;"
+                        >
+                            <path
+                                d="M2.10732 4.21463C3.27116 4.21463 4.21461 3.27115 4.21461 2.10732C4.21461 0.943476 3.27116 0 2.10732 0C0.943485 0 0 0.943476 0 2.10732C0 3.27115 0.943485 4.21463 2.10732 4.21463Z"
+                                fill="white"
+                            />
+                        </svg>
+                        <span>Яндекс Карты</span>
+                    </a>
+                    <select
+                        id="rating-filter"
+                        v-model="ratingFilter"
+                        @change="applyRatingFilter"
+                        class="h-9 min-w-[140px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    >
+                        <option
+                            v-for="opt in ratingOptions"
+                            :key="opt.value"
+                            :value="opt.value"
+                        >
+                            {{ opt.label }}
+                        </option>
+                    </select>
+                </div>
             </div>
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
                 <!-- Левая колонка: список отзывов -->
@@ -213,11 +244,11 @@ const getDisplayText = (text: string, reviewId: number) => {
                             >
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span
-                                        class="text-xs text-muted-foreground"
+                                        class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
                                         >{{ review.published_at }}</span
                                     >
                                     <span
-                                        class="text-xs text-muted-foreground"
+                                        class="text-sm leading-relaxed font-bold whitespace-pre-line text-foreground"
                                         >{{ place.title }}</span
                                     >
                                 </div>
@@ -386,6 +417,7 @@ const getDisplayText = (text: string, reviewId: number) => {
                                     </svg>
                                 </template>
                             </div>
+                            <div class="w-full border-t border-border" />
                             <p class="text-sm text-muted-foreground">
                                 Всего отзывов:
                                 {{ totalReviews.toLocaleString('ru-RU') }}

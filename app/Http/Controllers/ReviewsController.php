@@ -43,7 +43,7 @@ class ReviewsController extends Controller
             $place->id,
             $rating !== null ? (int) $rating : null,
             $request->validated('page', 1),
-            $request->validated('per_page', 3)
+            $request->validated('per_page', 10)
         );
 
         $reviews->withPath(route('admin.place-reviews', ['place' => $place->id]));
@@ -54,6 +54,7 @@ class ReviewsController extends Controller
                 'id' => $place->id,
                 'source_org_id' => $place->source_org_id,
                 'title' => $place->title,
+                'source_url' => $place->source_url,
                 'rating_value' => $place->rating_value,
                 'rating_count' => $place->rating_count,
             ],

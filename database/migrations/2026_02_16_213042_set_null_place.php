@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('places', function (Blueprint $table) {
+        Schema::table('places', function (Blueprint $table) {
             $table->string('source_url')->nullable()->change();
         });
 
-        Schema::create('place_reviews', function (Blueprint $table) {
+        Schema::table('place_reviews', function (Blueprint $table) {
             $table->string('source_user_uid')->nullable()->change();
             $table->string('user_name')->nullable()->change();
             $table->unsignedTinyInteger('rating')->nullable()->change();

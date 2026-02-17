@@ -177,7 +177,7 @@ const getDisplayText = (text: string, reviewId: number) => {
 
             <div class="h-px bg-border" />
             <div class="flex flex-wrap items-center gap-4">
-                <div class="items-center gap-2">
+                <div class="flex items-center gap-2">
                     <select
                         id="rating-filter"
                         v-model="ratingFilter"
@@ -194,8 +194,7 @@ const getDisplayText = (text: string, reviewId: number) => {
                     </select>
                 </div>
                 <a
-                    v-if="place.source_url"
-                    :href="place.source_url"
+                    :href="place.source_url ?? `https://yandex.ru/maps/org/${place.source_org_id}/`"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-xs transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

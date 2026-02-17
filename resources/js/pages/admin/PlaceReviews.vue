@@ -109,17 +109,13 @@ const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => i < rating);
 };
 
-/** Возвращает 'full' | 'half' | 'empty' для каждой из 5 звёзд. Если avg > 4 — 4.5 звёзды, если 4 — 4 звёзды. */
 const renderAverageStars = (
     avg: number | null | undefined,
 ): ('full' | 'half' | 'empty')[] => {
     if (avg == null || avg <= 0)
         return ['empty', 'empty', 'empty', 'empty', 'empty'];
-    if (avg >= 4.5) return ['full', 'full', 'full', 'full', 'half'];
-    if (avg > 4) return ['full', 'full', 'full', 'full', 'half'];
-    if (avg >= 4) return ['full', 'full', 'full', 'full', 'empty'];
     const full = Math.floor(avg);
-    const hasHalf = avg - full >= 0.5;
+    const hasHalf = avg > full; // любая дробная часть — половина
     return Array.from({ length: 5 }, (_, i) => {
         if (i < full) return 'full';
         if (i === full && hasHalf) return 'half';

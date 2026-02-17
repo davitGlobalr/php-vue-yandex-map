@@ -30,6 +30,6 @@ docker compose exec -T app php artisan route:clear
 echo ">>> Cache rebuild"
 docker compose exec -T app php artisan config:cache
 docker compose exec -T app php artisan route:cache
-docker compose exec -T app php artisan view:cache
+# view:cache skipped - Laravel 12 bug: fails to resolve laravel-exceptions-renderer::icons.* when APP_DEBUG=false
 
 echo ">>> Deploy complete"

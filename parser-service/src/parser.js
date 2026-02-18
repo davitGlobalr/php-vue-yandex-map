@@ -9,7 +9,7 @@ export async function parsePlaceSummary(page) {
     await politeWait();
 
     try {
-      title = await page.locator('h1.orgpage-header-view__header[itemprop="name"]').first().innerText().catch(() => null);
+      title = await page.locator('h1.card-title-view__title').first().innerText().catch(() => null);
       if (title) {
         title = title.trim() || null;
       }

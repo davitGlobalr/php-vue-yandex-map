@@ -19,9 +19,9 @@ class ImportReviewsJob implements ShouldQueue
     public function __construct(
         public string $placeId,
         public string $filePath,
-        public string $placeTitle,
-        public string $placeRatingValue,
-        public string $placeRatingCount
+        public ?string $placeTitle,
+        public ?string $placeRatingValue,
+        public ?string $placeRatingCount
     ) {
     }
 

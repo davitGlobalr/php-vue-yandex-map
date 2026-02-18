@@ -178,7 +178,13 @@ async function runParseJob({ place_id, url, max }) {
             await context.close().catch(() => {});
 
             await notifyLaravel(
-                { place_id: String(place_id), file_path: filePath },
+                {
+                    place_id: String(place_id),
+                    file_path: filePath,
+                    place_title: placeSummary.title,
+                    place_rating_value: placeSummary.rating_value,
+                    place_rating_count: placeSummary.rating_count,
+                },
                 'import',
             );
             return;

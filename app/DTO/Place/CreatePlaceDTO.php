@@ -7,6 +7,7 @@ class CreatePlaceDTO
     public function __construct(
         private ?int $source_org_id = null,
         private ?int $status = null,
+        private ?string $source_url = null,
     ) {
     }
 
@@ -20,6 +21,7 @@ class CreatePlaceDTO
         return [
             'source_org_id' => $this->source_org_id,
             'status' => $this->status,
+            'source_url' => $this->source_url,
         ];
     }
 

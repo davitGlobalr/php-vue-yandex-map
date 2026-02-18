@@ -36,7 +36,7 @@ class ConnectController extends Controller
         $sourceOrgId = (int)$matches[1];
 
         $place = $this->placeService->create(
-            new CreatePlaceDTO(source_org_id: $sourceOrgId, status: ParsingStatus::QUEUED->value)
+            new CreatePlaceDTO(source_org_id: $sourceOrgId, status: ParsingStatus::QUEUED->value, source_url: $sourceUrl)
         );
 
         StartParseJob::dispatch($place, $sourceUrl, 100);

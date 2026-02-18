@@ -18,7 +18,10 @@ class ImportReviewsJob implements ShouldQueue
 
     public function __construct(
         public string $placeId,
-        public string $filePath
+        public string $filePath,
+        public ?string $placeTitle,
+        public ?string $placeRatingValue,
+        public ?string $placeRatingCount
     ) {
     }
 
@@ -38,42 +41,14 @@ class ImportReviewsJob implements ShouldQueue
             return;
         }
 
-        $sourceUrl = null;
-
-        $title = null;
-        $ratingValue = null;
-        $ratingCount = null;
-
-        while (($line = fgets($handle)) !== false) {
-            $data = json_decode(trim($line), true);
-            if ($data && !isset($data['error'])) {
-                if (!empty($data['source_url'])) {
-                    $sourceUrl = $data['source_url'];
-                }
-                if (!empty($data['place_title'])) {
-                    $title = strlen($data['place_title']) > 255 ? substr($data['place_title'], 0, 255) : $data['place_title'];
-                }
-                if (isset($data['place_rating_value']) && $ratingValue === null) {
-                    $ratingValue = is_numeric($data['place_rating_value']) ? (float) $data['place_rating_value'] : null;
-                }
-                if (isset($data['place_rating_count']) && $ratingCount === null) {
-                    $ratingCount = is_numeric($data['place_rating_count']) ? (int) $data['place_rating_count'] : null;
-                }
-                if ($sourceUrl && ($title !== null || $ratingValue !== null || $ratingCount !== null)) {
-                    break;
-                }
-            }
-        }
-
         rewind($handle);
 
         $place = Place::firstOrCreate(
             ['source_org_id' => $sourceOrgId],
             [
-                'source_url' => $sourceUrl ?? '',
-                'title' => $title,
-                'rating_value' => $ratingValue,
-                'rating_count' => $ratingCount,
+                'title' => $this->placeTitle,
+                'rating_value' => $this->placeRatingValue,
+                'rating_count' => $this->placeRatingCount,
                 'status' => ParsingStatus::IMPORTING
             ]
         );

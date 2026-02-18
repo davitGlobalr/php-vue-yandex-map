@@ -49,6 +49,9 @@ class ParserController extends Controller
 
         $placeId = $request->validated('place_id');
         $filePath = $request->validated('file_path');
+        $placeTitle = $request->validated('place_title');
+        $placeRatingValue = $request->validated('place_rating_value');
+        $placeRatingCount = $request->validated('place_rating_count');
 
         $importPath = config('services.import_data_path');
         $fullPath = $importPath . '/' . $filePath;
@@ -65,7 +68,7 @@ class ParserController extends Controller
             $place->update(['status' => ParsingStatus::PARSED]);
         }
 
-        ImportReviewsJob::dispatch($placeId, $filePath);
+        ImportReviewsJob::dispatch($placeId, $filePath, $placeTitle, $placeRatingValue, $placeRatingCount);
 
         return response()->json([
             'status' => ApiStatus::QUEUED->value,

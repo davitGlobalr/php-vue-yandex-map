@@ -1,6 +1,3 @@
-/**
- * Утилиты для "человеческого" поведения парсера
- */
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

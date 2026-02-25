@@ -99,7 +99,6 @@ async function runParseJob({ place_id, url, max }) {
                 await context.close().catch(() => {});
 
                 if (captchaCount >= 2) {
-                    console.log('[FLOW] 2 CAPTCHAs in a row → needs_manual');
                     await notifyLaravel(
                         {
                             place_id: String(place_id),

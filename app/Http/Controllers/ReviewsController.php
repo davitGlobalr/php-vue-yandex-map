@@ -43,11 +43,11 @@ class ReviewsController extends Controller
             $place->id,
             $rating !== null ? (int) $rating : null,
             $request->validated('page', 1),
-            $request->validated('per_page', 10)
+            $request->validated('per_page', 50)
         );
 
         $reviews->withPath(route('admin.place-reviews', ['place' => $place->id]));
-        $reviews->appends($request->only(['rating']));
+        $reviews->appends($request->only(['rating', 'per_page']));
 
         return Inertia::render('admin/PlaceReviews', [
             'place' => [

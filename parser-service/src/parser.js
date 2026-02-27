@@ -10,7 +10,7 @@ export async function parsePlaceSummary(page) {
 
         try {
             title = await page
-                .locator('h1.card-title-view__title')
+                .locator('h1.orgpage-header-view__header')
                 .first()
                 .innerText()
                 .catch(() => null);
@@ -19,7 +19,7 @@ export async function parsePlaceSummary(page) {
             }
             if (!title) {
                 title = await page
-                    .locator('[itemprop="name"]')
+                    .locator('h1[itemprop="name"]')
                     .first()
                     .innerText()
                     .catch(() => null);
@@ -28,101 +28,28 @@ export async function parsePlaceSummary(page) {
         } catch (e) {}
 
         try {
-            const ariaLabels = await page
-                .locator('[aria-label*="Оценка"]')
+            const ratingTextElements = await page
+                .locator('.business-summary-rating-badge-view__rating-text')
                 .all();
-
-            for (const element of ariaLabels) {
-                const ariaLabel = await element
-                    .getAttribute('aria-label')
-                    .catch(() => null);
-                if (ariaLabel) {
-                    const match = ariaLabel.match(/Оценка\s+([\d,]+)/);
-                    if (match) {
-                        ratingValue =
-                            parseFloat(match[1].replace(',', '.')) || null;
-                        break;
+            if (ratingTextElements.length >= 2) {
+                const parts = [];
+                for (const element of ratingTextElements) {
+                    const text = await element.innerText().catch(() => null);
+                    if (text) {
+                        parts.push(text.trim());
+                    }
+                }
+                if (parts.length >= 2) {
+                    const ratingStr = parts.join('').replace(',', '.');
+                    const parsed = parseFloat(ratingStr);
+                    if (parsed && parsed >= 1 && parsed <= 5) {
+                        ratingValue = parsed;
                     }
                 }
             }
+
         } catch (e) {}
 
-        if (!ratingValue) {
-            try {
-                const ratingTextElements = await page
-                    .locator('.business-summary-rating-badge-view__rating-text')
-                    .all();
-                if (ratingTextElements.length >= 2) {
-                    const parts = [];
-                    for (const element of ratingTextElements) {
-                        const text = await element
-                            .innerText()
-                            .catch(() => null);
-                        if (text) {
-                            parts.push(text.trim());
-                        }
-                    }
-                    if (parts.length >= 2) {
-                        const ratingStr = parts.join('').replace(',', '.');
-                        const parsed = parseFloat(ratingStr);
-                        if (parsed && parsed >= 1 && parsed <= 5) {
-                            ratingValue = parsed;
-                        }
-                    }
-                }
-
-                if (!ratingValue) {
-                    const ratingSelectors = [
-                        '.business-summary-rating-badge-view__rating',
-                        '.business-rating-badge-view',
-                        '[class*="rating"]',
-                    ];
-
-                    for (const selector of ratingSelectors) {
-                        const elements = await page.locator(selector).all();
-
-                        for (const element of elements) {
-                            const text = await element
-                                .innerText()
-                                .catch(() => null);
-                            if (text) {
-                                const match = text.match(/([\d,]+)/);
-                                if (match) {
-                                    const parsed = parseFloat(
-                                        match[1].replace(',', '.'),
-                                    );
-                                    if (parsed && parsed >= 1 && parsed <= 5) {
-                                        ratingValue = parsed;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (ratingValue) break;
-                    }
-                }
-            } catch (e) {}
-        }
-
-        if (!ratingValue) {
-            try {
-                const pageText = await page
-                    .textContent('body')
-                    .catch(() => null);
-                if (pageText) {
-                    const matches = pageText.match(/([1-5][,\.]\d+)/g);
-                    if (matches) {
-                        for (const match of matches) {
-                            const parsed = parseFloat(match.replace(',', '.'));
-                            if (parsed >= 1 && parsed <= 5) {
-                                ratingValue = parsed;
-                                break;
-                            }
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
 
         try {
             const countSelectors = [
@@ -131,32 +58,18 @@ export async function parsePlaceSummary(page) {
                 '[class*="rating-amount"]',
             ];
 
-            for (const selector of countSelectors) {
-                const countText = await page
-                    .locator(selector)
-                    .first()
-                    .innerText()
-                    .catch(() => null);
-                if (countText) {
-                    const match = countText.match(/(\d+)/);
-                    if (match) {
-                        ratingCount = parseInt(match[1], 10) || null;
-                        break;
-                    }
+            const countText = await page
+                .locator('.business-rating-amount-view')
+                .first()
+                .innerText()
+                .catch(() => null);
+            if (countText) {
+                const match = countText.match(/(\d+)/);
+                if (match) {
+                    ratingCount = parseInt(match[1], 10) || null;
                 }
             }
 
-            if (!ratingCount) {
-                const pageText = await page
-                    .textContent('body')
-                    .catch(() => null);
-                if (pageText) {
-                    const match = pageText.match(/(\d+)\s+оценок?/i);
-                    if (match) {
-                        ratingCount = parseInt(match[1], 10) || null;
-                    }
-                }
-            }
         } catch (e) {}
 
         return {

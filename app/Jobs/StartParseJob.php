@@ -19,7 +19,7 @@ class StartParseJob implements ShouldQueue
     public function __construct(
         public Place $place,
         public string $sourceUrl,
-        public int $max = 100
+        public int $max = 1000
     ) {
     }
 
@@ -30,7 +30,7 @@ class StartParseJob implements ShouldQueue
         $url = $parserServiceUrl.'/jobs';
 
         try {
-            $response = Http::timeout(30)->post($url, [
+            $response = Http::timeout(3)->post($url, [
                 'place_id' => (string)$this->place->source_org_id,
                 'url' => $this->sourceUrl,
                 'max' => $this->max,

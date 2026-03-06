@@ -49,9 +49,17 @@ class ImportReviewsJob implements ShouldQueue
                 'title' => $this->placeTitle,
                 'rating_value' => $this->placeRatingValue,
                 'rating_count' => $this->placeRatingCount,
-                'status' => ParsingStatus::IMPORTING
+                'status' => ParsingStatus::IMPORTING,
+                'source_url' => '',
             ]
         );
+
+        $place->update([
+            'title' => $this->placeTitle !== null && $this->placeTitle !== '' ? $this->placeTitle : $place->title,
+            'rating_value' => $this->placeRatingValue !== null && $this->placeRatingValue !== '' ? $this->placeRatingValue : $place->rating_value,
+            'rating_count' => $this->placeRatingCount !== null && $this->placeRatingCount !== '' ? (int) $this->placeRatingCount : $place->rating_count,
+            'status' => ParsingStatus::IMPORTING,
+        ]);
 
         while (($line = fgets($handle)) !== false) {
             $data = json_decode(trim($line), true);

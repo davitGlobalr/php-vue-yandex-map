@@ -18,6 +18,9 @@ class ParserImportRequest extends FormRequest
         return [
             'place_id' => ['required', 'string'],
             'file_path' => ['required', 'string'],
+            'place_title' => ['nullable', 'string', 'max:1024'],
+            'place_rating_value' => ['nullable', 'numeric', 'min:0', 'max:5'],
+            'place_rating_count' => ['nullable', 'integer', 'min:0'],
         ];
     }
 

@@ -1,88 +1,95 @@
 import { politeWait, sleep, jitter } from './utils.js';
 
 export async function parsePlaceSummary(page) {
+    const result = { title: null, rating_value: null, rating_count: null };
     try {
-        let title = null;
-        let ratingValue = null;
-        let ratingCount = null;
-
         await politeWait();
+        await sleep(800);
+
+        const titleSelectors = [
+            'h1.card-title-view__title',
+            '.card-title-view__wrapper h1',
+            'h1.orgpage-header-view__header',
+            '.orgpage-header-view__header-wrapper h1',
+            '.orgpage-header-view__header-wrapper h1[itemprop="name"]',
+            'h1[itemprop="name"]',
+        ];
+        for (const sel of titleSelectors) {
+            const n = await page.locator(sel).count();
+            if (n > 0) {
+                const text = await page.locator(sel).first().innerText().catch(() => null);
+                if (text && text.trim()) {
+                    result.title = text.trim();
+                    break;
+                }
+            }
+        }
 
         try {
-            title = await page
-                .locator('h1.orgpage-header-view__header')
-                .first()
-                .innerText()
-                .catch(() => null);
-            if (title) {
-                title = title.trim() || null;
-            }
-            if (!title) {
-                title = await page
-                    .locator('h1[itemprop="name"]')
-                    .first()
-                    .innerText()
-                    .catch(() => null);
-                if (title) title = title.trim() || null;
-            }
-        } catch (e) {}
-
-        try {
-            const ratingTextElements = await page
-                .locator('.business-summary-rating-badge-view__rating-text')
-                .all();
-            if (ratingTextElements.length >= 2) {
-                const parts = [];
-                for (const element of ratingTextElements) {
-                    const text = await element.innerText().catch(() => null);
-                    if (text) {
-                        parts.push(text.trim());
+            const ariaEls = await page.locator('[aria-label*="Rating"], [aria-label*="Оценка"]').all();
+            for (const el of ariaEls) {
+                const aria = await el.getAttribute('aria-label').catch(() => null);
+                if (aria) {
+                    const m =
+                        aria.match(/Rating\s+([\d.,]+)\s+Out of 5/i) ||
+                        aria.match(/Оценка\s+([\d.,]+)\s+из\s+5/i) ||
+                        aria.match(/([\d.,]+)\s*\/\s*5/i);
+                    if (m) {
+                        result.rating_value = parseFloat(m[1].replace(',', '.')) || null;
+                        if (result.rating_value >= 1 && result.rating_value <= 5) {
+                            break;
+                        }
                     }
                 }
-                if (parts.length >= 2) {
-                    const ratingStr = parts.join('').replace(',', '.');
-                    const parsed = parseFloat(ratingStr);
-                    if (parsed && parsed >= 1 && parsed <= 5) {
-                        ratingValue = parsed;
+            }
+        } catch (e) {
+        }
+
+        if (result.rating_value == null) {
+            try {
+                const ratingTextElements = await page
+                    .locator('.business-summary-rating-badge-view__rating-text')
+                    .all();
+                if (ratingTextElements.length >= 2) {
+                    const parts = [];
+                    for (const element of ratingTextElements) {
+                        const text = await element.innerText().catch(() => null);
+                        if (text) parts.push(text.trim());
+                    }
+                    if (parts.length >= 2) {
+                        const ratingStr = parts.join('').replace(',', '.');
+                        const parsed = parseFloat(ratingStr);
+                        if (parsed >= 1 && parsed <= 5) {
+                            result.rating_value = parsed;
+                        }
+                    }
+                }
+            } catch (e) {
+            }
+        }
+
+        const countSelectors = [
+            '.business-rating-amount-view._summary',
+            '.business-summary-rating-badge-view__rating-count .business-rating-amount-view',
+            '.business-rating-amount-view',
+        ];
+        for (const sel of countSelectors) {
+            const n = await page.locator(sel).count();
+            if (n > 0) {
+                const countText = await page.locator(sel).first().innerText().catch(() => null);
+                if (countText) {
+                    const m = countText.match(/(\d+)\s*(ratings|оценок|оценки)?/i);
+                    if (m) {
+                        result.rating_count = parseInt(m[1], 10) || null;
+                        break;
                     }
                 }
             }
+        }
 
-        } catch (e) {}
-
-
-        try {
-            const countSelectors = [
-                '.business-rating-amount-view._summary',
-                '.business-rating-amount-view',
-                '[class*="rating-amount"]',
-            ];
-
-            const countText = await page
-                .locator('.business-rating-amount-view')
-                .first()
-                .innerText()
-                .catch(() => null);
-            if (countText) {
-                const match = countText.match(/(\d+)/);
-                if (match) {
-                    ratingCount = parseInt(match[1], 10) || null;
-                }
-            }
-
-        } catch (e) {}
-
-        return {
-            title: title,
-            rating_value: ratingValue,
-            rating_count: ratingCount,
-        };
+        return result;
     } catch (e) {
-        return {
-            title: null,
-            rating_value: null,
-            rating_count: null,
-        };
+        return { title: null, rating_value: null, rating_count: null };
     }
 }
 
@@ -98,7 +105,6 @@ export async function parseReviews(page, max = 50) {
             '.review',
             '[itemprop="review"]',
         ];
-
         let found = false;
         for (const selector of alternativeSelectors) {
             try {
@@ -107,7 +113,6 @@ export async function parseReviews(page, max = 50) {
                 break;
             } catch (err) {}
         }
-
         if (!found) {
             await sleep(3000);
             const bodyText = await page.textContent('body').catch(() => '');
@@ -119,8 +124,9 @@ export async function parseReviews(page, max = 50) {
 
     let prevCount = 0;
     let stableCount = 0;
+    const maxScrollIterations = 80;
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < maxScrollIterations; i++) {
         const count = await page.locator(reviewCard).count();
 
         if (count === 0 && i === 0) {
@@ -129,12 +135,16 @@ export async function parseReviews(page, max = 50) {
 
         if (count === prevCount) {
             stableCount++;
-            if (stableCount >= 3) break;
+            if (stableCount >= 3) {
+                break;
+            }
         } else {
             stableCount = 0;
         }
 
-        if (count >= max) break;
+        if (count >= max) {
+            break;
+        }
         prevCount = count;
 
         if (count > 0) {
@@ -142,7 +152,8 @@ export async function parseReviews(page, max = 50) {
                 const lastCard = page.locator(reviewCard).last();
                 await lastCard.scrollIntoViewIfNeeded({ timeout: 5000 });
                 await politeWait();
-            } catch (e) {}
+            } catch (e) {
+            }
         }
 
         await page.mouse.wheel(0, jitter(400, 900));
@@ -159,15 +170,12 @@ export async function parseReviews(page, max = 50) {
             '.review-item',
             '[itemprop="review"]',
         ];
-
         for (const altSelector of alternativeSelectors) {
-            const altCards = page.locator(altSelector);
-            const altCount = await altCards.count();
+            const altCount = await page.locator(altSelector).count();
             if (altCount > 0) {
                 return [];
             }
         }
-
         return [];
     }
 
@@ -274,8 +282,10 @@ export async function parseReviews(page, max = 50) {
                 published_at: publishedAt,
                 body: body?.trim() || null,
             });
-        } catch (e) {}
+        } catch (e) {
+        }
     }
 
+    const withUid = results.filter((r) => r.user_uid).length;
     return results;
 }

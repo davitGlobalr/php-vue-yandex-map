@@ -5,7 +5,7 @@ import path from 'path';
 import { ensureDataDir, appendJsonl, saveScreenshot } from './storage.js';
 import { parseReviews, parsePlaceSummary } from './parser.js';
 import { openBrowser } from './browser.js';
-import { isCaptcha, politeWait } from './utils.js';
+import { isCaptcha, politeWait, sleep, jitter } from './utils.js';
 
 ensureDataDir();
 
@@ -78,17 +78,24 @@ async function runParseJob({ place_id, url, max }) {
             context = browser.context;
             page = browser.page;
 
-            await page.route('**/*', (route) => {
-                const rt = route.request().resourceType();
-                if (rt === 'image' || rt === 'media' || rt === 'font')
-                    return route.abort();
-                route.continue();
-            });
+            const blockResources = process.env.DISABLE_IMAGE_BLOCK !== '1';
+            if (blockResources) {
+                await page.route('**/*', (route) => {
+                    const rt = route.request().resourceType();
+                    if (rt === 'image' || rt === 'media' || rt === 'font')
+                        return route.abort();
+                    route.continue();
+                });
+            }
+
+            const warmupMs = jitter(3000, 7000);
+            await sleep(warmupMs);
 
             await page.goto(url, {
                 waitUntil: 'domcontentloaded',
                 timeout: 60000,
             });
+            const finalUrl = page.url();
             await politeWait();
 
             if (await isCaptcha(page)) {
@@ -99,7 +106,6 @@ async function runParseJob({ place_id, url, max }) {
                 await context.close().catch(() => {});
 
                 if (captchaCount >= 2) {
-                    console.log('[FLOW] 2 CAPTCHAs in a row → needs_manual');
                     await notifyLaravel(
                         {
                             place_id: String(place_id),

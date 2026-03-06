@@ -39,7 +39,7 @@ class ConnectController extends Controller
             new CreatePlaceDTO(source_org_id: $sourceOrgId, status: ParsingStatus::QUEUED->value, source_url: $sourceUrl)
         );
 
-        StartParseJob::dispatch($place, $sourceUrl, 100);
+        StartParseJob::dispatch($place, $sourceUrl);
 
         return redirect()->back()->with('success', 'Parsing Start!');
     }
